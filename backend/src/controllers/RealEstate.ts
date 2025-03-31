@@ -52,6 +52,7 @@ export const deleteRealEstate = async (req, res, next) => {
 
   try {
     const sess = await mongoose.startSession();
+
     sess.startTransaction();
     await RealEstate.deleteOne(realEstate, { session: sess });
     realEstate.agent.realEstates.pull(realEstate._id);

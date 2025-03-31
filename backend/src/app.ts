@@ -6,6 +6,7 @@ import newRealEastate from './routes/realEstates';
 import bodyParser from 'body-parser';
 import HttpError from './models/http-error';
 import mongoose from 'mongoose';
+import path from 'path';
 
 dotenv.config({ path: './.env.local' });
 
@@ -16,6 +17,8 @@ const mongoUri = `mongodb+srv://${process.env.MONGODB_USERNAME}:${process.env.MO
 
 app.use(bodyParser.json()); // for post requests
 app.use(cors({origin: '*'}));
+// app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 app.use('/api/agents', agentsRoutes);
 app.use('/api/real-estates', newRealEastate);
 app.use((error, req, res, next) => {

@@ -1,6 +1,7 @@
 import { NextFunction } from "express";
 import HttpError from "../models/http-error";
 import Agent from "../models/Agent";
+import fileUpload from '../middleware/file-upload';
 
 type Agent = {
   name: string;
@@ -30,22 +31,33 @@ const agents = [
   },
 ];
 
-export const getAgentsList = (req, res, next: NextFunction) => {
-  if (agents.length === 0) {
-    return next(new HttpError('Agents not found :(', 404));
-  }
+export const getAgentsList = async (req, res, next: NextFunction) => {
+  try {
+    const agents = await Agent.find();
 
-  res.json(agents);
+    if (!agents || agents.length === 0) {
+      return next(new HttpError('Agents not found :(', 404));
+    }
+
+    res.json(agents);
+  } catch (err) {
+    return next(new HttpError('Fetching agents failed, please try again later.', 500));
+  }
 };
 
-export const getAgent = (req, res, next) => {
+export const getAgent = async (req, res, next: NextFunction) => {
   const agentId = req.params.id;
-  const agent = agents.find((agent) => agent.id === agentId);
 
-  if (agent) {
+  try {
+    const agent = await Agent.findById(agentId);
+
+    if (!agent) {
+      return next(new HttpError('Agent not found :(', 404));
+    }
+
     res.json(agent);
-  } else {
-    return next(new HttpError('Agent not found :(', 404));
+  } catch (err) {
+    return next(new HttpError('Fetching agent failed, please try again later.', 500));
   }
 };
 
@@ -88,8 +100,12 @@ export const login = async(req, res, next) => {
   }
 };
 
-export const signup = async(req, res, next) => {
+export const signup = async (req, res, next) => {
   const { name, email, password } = req.body;
+
+  if (!req.file) {
+    return next(new HttpError('No photo uploaded :(', 422));
+  }
 
   const existingAgent = await Agent.findOne({ email: email });
 
@@ -97,27 +113,20 @@ export const signup = async(req, res, next) => {
     return next(new HttpError('Agent already exists :(', 422));
   }
 
+  console.log(req.file);
+
   const newAgent = new Agent({
     name,
     email,
     password,
+    photo: req.file.path,
     realEstates: [],
   });
 
   try {
     await newAgent.save();
     res.status(201).json(newAgent);
-  }
-  catch (err) {
+  } catch (err) {
     return next(new HttpError('Signing up failed :(', 500));
-  }  
+  }
 };
-
-// export default {
-//   getAgentsList,
-//   getAgent,
-//   updateAgent,
-//   deleteAgent,
-//   login,
-//   signup,
-// };

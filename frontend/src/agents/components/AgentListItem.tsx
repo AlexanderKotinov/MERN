@@ -5,10 +5,12 @@ type AgentPropsType = {
 };
 
 export default function AgentListItem(props: AgentPropsType) {
-  const agentPhoto = props.agentData.photo ? props.agentData.photo : imgPlaceholder;
+  console.log(`http://localhost:4000/${props.agentData.photo}`);
+  const agentPhoto = props.agentData.photo
+    ? `http://localhost:4000/${props.agentData.photo}`
+    : imgPlaceholder;
 
   return (
-    // card with rounded image and name vs email
     <div className='bg-slate-700 shadow-md rounded-lg overflow-hidden p-4 m-4 cursor-pointer'>
       <div className="flex flex-row items-center">
         <img className='w-16 h-16 rounded-full object-cover' src={agentPhoto} alt='agent' />

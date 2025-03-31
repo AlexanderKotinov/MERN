@@ -7,12 +7,13 @@ import {
   login,
   signup,
 } from '../controllers/Agents';
+import fileUpload from '../middleware/file-upload';
 
 const router = express.Router();
 
 router.get('/', getAgentsList);
 router.get('/:id', getAgent);
-router.post('/signup', signup);
+router.post('/signup', fileUpload.single('photo'), signup);
 router.patch('/:id', updateAgent);
 router.delete('/:id', deleteAgent);
 router.post('/login', login);

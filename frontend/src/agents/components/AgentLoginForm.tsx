@@ -1,68 +1,63 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useHttpClient } from '../../shared/hooks/useHttpClient';
 
 export default function AgentLoginForm() {
   const navigate = useNavigate();
+  const { isLoading, error, sendRequest, clearError } = useHttpClient();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false); // loading state for login button
 
   const handelFormSubmit = async (event: React.FormEvent) => {
     event.preventDefault(); // Prevent the default form submission behavior
-    setError('');
-    setLoading(true);
 
-    // post request to login endpoint
     try {
-      const response = await fetch('http://127.0.0.1:4000/api/agents/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      const data = await sendRequest(
+        'http://localhost:4000/api/agents/login',
+        'POST',
+        { email, password }
+      );
 
-      setLoading(false);
-
-      if (response.ok) {
-        navigate('/agents');
-      }
-
-      if (response.status === 404) {
-        setError('Invalid credentials');
-      }
-    } catch (error) {
-      setError('Login failed :(');
+      console.log('Login successful:', data);
+      navigate('/agents');
+    } catch (err) {
+      console.error('Login failed:', err);
     }
   };
 
   return (
     <>
-      <form className='flex flex-col' onSubmit={handelFormSubmit}>
+      {error && (
+        <div className="bg-red-100 text-red-700 p-2 rounded-md mb-4">
+          <p>{error}</p>
+          <button onClick={clearError} className="text-blue-500 underline">
+            Dismiss
+          </button>
+        </div>
+      )}
+      <form className="flex flex-col" onSubmit={handelFormSubmit}>
         <input
-          type='email'
-          placeholder='Email'
-          className='p-2 m-2 rounded-md'
+          type="email"
+          placeholder="Email"
+          className="p-2 m-2 rounded-md border border-gray-300"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
         <input
-          type='password'
-          placeholder='Password'
-          className='p-2 m-2 rounded-md'
+          type="password"
+          placeholder="Password"
+          className="p-2 m-2 rounded-md border border-gray-300"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
-        {error && <p className='text-red-500'>{error || ''}</p>}
         <button
-          type='submit'
-          className='bg-blue-500 text-white p-2 m-2 rounded-md'
-          disabled={loading}
+          type="submit"
+          className="bg-blue-500 text-white p-2 m-2 rounded-md"
+          disabled={isLoading}
         >
-          {loading ? 'Loading...' : 'Login'}
+          {isLoading ? 'Loading...' : 'Login'}
         </button>
       </form>
     </>
   );
-};
+}

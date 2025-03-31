@@ -22,6 +22,10 @@ const agentSchema = new mongoose.Schema({
       ref: 'RealEstate',
     },
   ],
+  photo: {
+    type: String,
+    required: true,
+  },
 });
 
 agentSchema.plugin(uniqueValidator);
