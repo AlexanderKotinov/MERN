@@ -2,6 +2,8 @@ import { NextFunction } from "express";
 import HttpError from "../models/http-error";
 import Agent from "../models/Agent";
 import fileUpload from '../middleware/file-upload';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
 type Agent = {
   name: string;
@@ -85,19 +87,31 @@ export const deleteAgent = (req, res, next): void => {
   res.json(agents);
 };
 
-export const login = async(req, res, next) => {
+export const login = async (req, res, next) => {
   const { email, password } = req.body;
-  const agent = await Agent.findOne({ email: email });
+
+  const agent = await Agent.findOne({ email: email }) as { password: string, id: string, email: string } | null;
 
   if (!agent) {
     return res.status(404).json({ message: 'Agent not found :(' });
   }
 
-  if (agent.password === password) {
-    res.json({ message: 'Login successful!' });
-  } else {
+  let isValidPassword = false;
+  try {
+    isValidPassword = await bcrypt.compare(password, agent.password as string);
+  } catch (err) {
+    return next(new HttpError('Could not log you in, please try again later.', 500));
+  }
+
+  if (!isValidPassword) {
     return next(new HttpError('Invalid password :(', 401));
   }
+
+  res.json({
+    agentId: agent.id,
+    email: agent.email,
+    token: generateToken(agent as Agent),
+  });
 };
 
 export const signup = async (req, res, next) => {
@@ -113,20 +127,38 @@ export const signup = async (req, res, next) => {
     return next(new HttpError('Agent already exists :(', 422));
   }
 
-  console.log(req.file);
+  let hashedPassword;
+  try {
+    hashedPassword = await bcrypt.hash(password, 12);
+  } catch (err) {
+    return next(new HttpError('Could not create agent, please try again later.', 500));
+  }
 
   const newAgent = new Agent({
     name,
     email,
-    password,
+    password: hashedPassword,
     photo: req.file.path,
     realEstates: [],
   });
 
   try {
     await newAgent.save();
-    res.status(201).json(newAgent);
+
+    res.status(201).json({
+      agentId: newAgent.id,
+      email: newAgent.email,
+      token: generateToken(newAgent as Agent),
+    });
   } catch (err) {
     return next(new HttpError('Signing up failed :(', 500));
   }
 };
+
+const generateToken = (agent: Agent) => {
+  return jwt.sign(
+    { agentId: agent.id, email: agent.email },
+    process.env.JWT_SECRET as string,
+    { expiresIn: '2h' }
+  );
+}

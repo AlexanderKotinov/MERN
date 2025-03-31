@@ -52,10 +52,12 @@ export default function SignUpForm() {
     if (photo) {
       formData.append('photo', photo);
     }
+
+    console.log('Backend URL:', process.env.REACT_APP_BACKEND_URL);
   
     try {
       const data = await sendRequest(
-        'http://localhost:4000/api/agents/signup',
+        `${process.env.REACT_APP_BACKEND_URL}api/agents/signup`,
         'POST',
         formData
       );

@@ -1,6 +1,20 @@
+import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 
 export default function NavLinks() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+
+    setIsLoggedIn(!!token);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('authToken');
+    window.location.href = '/login';
+  };
+
   return (
     <ul className='flex p-4'>
       <li className='mr-4 border-r border-gray-300'>
@@ -12,9 +26,20 @@ export default function NavLinks() {
       <li className='mr-4 border-r border-gray-300'>
         <NavLink className={({ isActive }) => `pr-4 hover:underline ${isActive ? 'text-red-400' : ''}`} to='/real-estate'>Real Estate</NavLink>
       </li>
-      <li>
-        <NavLink className={({ isActive }) => `hover:underline ${isActive ? 'text-red-400' : ''}`} to='/login'>Login</NavLink>
-      </li>
+      {isLoggedIn ? (
+        <li>
+          <button
+            onClick={handleLogout}
+            className="hover:underline"
+          >
+            Logout
+          </button>
+        </li>
+      ) : (
+        <li>
+          <NavLink className={({ isActive }) => `hover:underline ${isActive ? 'text-red-400' : ''}`} to='/login'>Login</NavLink>
+        </li>
+      )}
     </ul>
   );
 }

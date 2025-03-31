@@ -10,6 +10,12 @@ export const useHttpClient = () => {
       setError(null);
 
       try {
+        const token = localStorage.getItem('authToken');
+
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+
         const options: RequestInit = {
           method,
           headers: { ...(headers as Record<string, string>) },
@@ -25,7 +31,6 @@ export const useHttpClient = () => {
         }
 
         const response = await fetch(url, options);
-
         const data = await response.json();
 
         if (!response.ok) {

@@ -8,14 +8,15 @@ import {
   signup,
 } from '../controllers/Agents';
 import fileUpload from '../middleware/file-upload';
+import { checkAuth } from '../middleware/check-auth';
 
 const router = express.Router();
 
-router.get('/', getAgentsList);
-router.get('/:id', getAgent);
+router.get('/', checkAuth, getAgentsList);
+router.get('/:id', checkAuth, getAgent);
 router.post('/signup', fileUpload.single('photo'), signup);
-router.patch('/:id', updateAgent);
-router.delete('/:id', deleteAgent);
+router.patch('/:id', checkAuth, updateAgent);
+router.delete('/:id', checkAuth, deleteAgent);
 router.post('/login', login);
 
 export default router;

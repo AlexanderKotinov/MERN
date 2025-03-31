@@ -9,14 +9,15 @@ export default function AgentLoginForm() {
   const [password, setPassword] = useState('');
 
   const handelFormSubmit = async (event: React.FormEvent) => {
-    event.preventDefault(); // Prevent the default form submission behavior
+    event.preventDefault();
 
     try {
       const data = await sendRequest(
-        'http://localhost:4000/api/agents/login',
+        `${process.env.REACT_APP_BACKEND_URL}api/agents/login`,
         'POST',
         { email, password }
       );
+      localStorage.setItem('authToken', data.token);
 
       console.log('Login successful:', data);
       navigate('/agents');
